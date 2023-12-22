@@ -1,6 +1,6 @@
 # Reasons to Reject? Aligning Language Models with Judgments
 <p align="center">
-<img src="./assets/intro.pdf" alt="CUT" width="300"/>
+<img src="./assets/intro.png" alt="CUT" width="300"/>
 </p>
 
 <!-- <p align="center">
