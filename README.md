@@ -1,6 +1,6 @@
-# Platypus: Quick, Cheap, and Powerful Refinement of LLMs (https://platypus-llm.github.io)
+# Reasons to Reject? Aligning Language Models with Judgments
 
-<p align="center">
+<!-- <p align="center">
 <img src="./assets/Best_Platty.png" alt="Platypus" width="300"/>
 </p>
 
@@ -165,5 +165,4 @@ This a basic example script for running inference directly using fine-tuned adap
     booktitle={arXiv preprint arxiv:2308.07317},
     year={2023}
 }
-```
-# NegInstruct
+``` -->
