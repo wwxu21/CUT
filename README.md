@@ -38,12 +38,36 @@ Our offline alignment results show that, with merely 1317 off-the-shelf judgment
 
 #### 2. Dataset
 
-To reproduce the offline experiments, please use the datasets from [Summarization Training set](https://openaipublic.blob.core.windows.net/critiques/dataset/critiques/train.jsonl.gz), [Summarization test set](https://openaipublic.blob.core.windows.net/critiques/dataset/critiques/test.jsonl.gz), and [Shepherd](https://github.com/facebookresearch/Shepherd).
+##### 1. Offline Alignment
+
+To reproduce the offline experiments, please use the datasets from [Summarization Train](https://openaipublic.blob.core.windows.net/critiques/dataset/critiques/train.jsonl.gz), [Summarization Test](https://openaipublic.blob.core.windows.net/critiques/dataset/critiques/test.jsonl.gz), and [Shepherd](https://github.com/facebookresearch/Shepherd).
 Please use the script `scripts/convert2alpaca.py` to convert the data into the Alpaca Format.
+
+
+##### 2. Online Alignment
 
 To reproduce the online experiments, we provide the training instances for 5 online interations in `data/iter`. 
 
-We also re-annotate the 1000 * 4 instruction-response-judgment triplets from [UltraFeedback](https://github.com/OpenBMB/UltraFeedback). The new judgment data can be found in `data/UltraFeedback`.
+##### 3. Judgment v.s. Rewards
+
+We sample 1000 * 4 instruction-response-judgment triplets from [UltraFeedback](https://github.com/OpenBMB/UltraFeedback) and re-annotate them with only negative judgments. The new judgment data can be found in `data/UltraFeedback`.
+
+<span id='train'/>
+
+#### 3. Fine-tuning
+
+##### 1. Prepare the environment
+
+```bash
+pip install -r requirments.txt
+```
+
+##### 2. Train LLMs with CUT (first online iteration as the example)
+
+```bash
+sh fine-tuning-unlike.sh # [TODO] only applicable for micro_batch_size=1
+```
+
 
 ## BibTeX
 
