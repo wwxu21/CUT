@@ -152,7 +152,7 @@ python -m fastchat.serve.cli --model-path xww033/cut-13b --conv-template alpaca
 
 ##### 1. Generation-based Evaluation
 
-We evaluate the model on AlpacaEval(https://tatsu-lab.github.io/alpaca_eval). 
+We evaluate the model on [AlpacaEval](https://tatsu-lab.github.io/alpaca_eval). 
 The following script is employed to request the LLM to produce responses to the provided 805 instructions:
 
 ```bash
