@@ -1,9 +1,47 @@
 # Reasons to Reject? Aligning Language Models with Judgments
+
+This repository contains code and resources of our paper,
+
+[Reasons to Reject? Aligning Language Models with Judgments](https://arxiv.org/abs/2312.14591).
+
+Weiwen Xu, Deng Cai, Zhisong Zhang, Wai Lam, Shuming Shi
+
+<span id='all_catelogue'/>
+
+### Catalogue:
+* <a href='#introduction'>1. Introduction</a>
+* <a href='#Dataset'>2. Dataset</a>
+* <a href='#train'>3. Fine-tuning</a>
+* <a href='#test'>4. Inference and Testing</a>
+    
+****
+
+<span id='introduction'/>
+As humans, we consistently engage in interactions with our peers and receive feedback in the form of natural language. This language feedback allows us to reflect on our actions, maintain appropriate behavior, and rectify our errors. The question arises naturally: can we use language feedback to align large language models (LLMs)? 
+
 <p align="center">
 <img src="./assets/intro.png" alt="CUT" width="800"/>
 </p>
 
-<!-- <p align="center">
+In contrast to previous research that aligns LLMs with reward or preference data, we present the first systematic exploration of alignment through the lens of language feedback (i.e., judgment). We commence with an in-depth investigation of potential methods that can be adapted for aligning LLMs with judgments, revealing that these methods are unable to fully capitalize on the judgments. To facilitate more effective utilization of judgments, we propose a novel framework, Contrastive Unlikelihood Training (CUT), that allows for fine-grained inappropriate content detection and correction based on judgments. Our offline alignment results show that, with merely 1317 off-the-shelf judgment data, CUT (LLaMA2-13b) can beat the 175B DaVinci003 and surpass the best baseline by 52.34 points on AlpacaEval. The online alignment results demonstrate that CUT can align LLMs (LLaMA2-chat-13b) in an iterative fashion using model-specific judgment data, with a steady performance improvement from 81.09 to 91.36 points on AlpacaEval. Our analysis further suggests that judgments exhibit greater potential than rewards for LLM alignment and warrant future research.
+
+<p align="center">
+<img src="./assets/toy.png" alt="CUT" width="800"/>
+</p>
+
+## BibTeX
+
+```
+@misc{xu2023reasons,
+      title={Reasons to Reject? Aligning Language Models with Judgments}, 
+      author={Weiwen Xu and Deng Cai and Zhisong Zhang and Wai Lam and Shuming Shi},
+      booktitle={arXiv preprint arxiv:2312.14591},
+      year={2023}
+}
+```
+
+<!-- 
+<p align="center">
 <img src="./assets/Best_Platty.png" alt="Platypus" width="300"/>
 </p>
 
@@ -157,15 +195,4 @@ python main.py --model hf-causal-experimental --model_args pretrained=garage-bAI
 ```
 ## Inference for Adapters (`inference.py`)
 
-This a basic example script for running inference directly using fine-tuned adapters and/or local data. The current version reads data from a csv file. You can easily edit this to pull from HF or use a json file. Please make any necessary edits before using this script (it assumes alpaca formatting).
-
-## BibTeX
-
-```
-@article{platypus2023,
-    title={Platypus: Quick, Cheap, and Powerful Refinement of LLMs}, 
-    author={Ariel N. Lee and Cole J. Hunter and Nataniel Ruiz},
-    booktitle={arXiv preprint arxiv:2308.07317},
-    year={2023}
-}
-``` -->
+This a basic example script for running inference directly using fine-tuned adapters and/or local data. The current version reads data from a csv file. You can easily edit this to pull from HF or use a json file. Please make any necessary edits before using this script (it assumes alpaca formatting). -->
