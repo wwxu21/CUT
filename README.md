@@ -10,28 +10,40 @@ Weiwen Xu, Deng Cai, Zhisong Zhang, Wai Lam, Shuming Shi
 
 ### Catalogue:
 * <a href='#introduction'>1. Introduction</a>
-* <a href='#Dataset'>2. Dataset</a>
+* <a href='#dataset'>2. Dataset</a>
 * <a href='#train'>3. Fine-tuning</a>
 * <a href='#test'>4. Inference and Testing</a>
     
 ****
 
 <span id='introduction'/>
+
+#### 1. Introduction
+
 As humans, we consistently engage in interactions with our peers and receive feedback in the form of natural language. This language feedback allows us to reflect on our actions, maintain appropriate behavior, and rectify our errors. The question arises naturally: can we use language feedback to align large language models (LLMs)? 
 
 <img src="./assets/intro.png" alt="intro" align=center />
 
 In contrast to previous research that aligns LLMs with reward or preference data, we present the first systematic exploration of alignment through the lens of language feedback (i.e., judgment). We commence with an in-depth investigation of potential methods that can be adapted for aligning LLMs with judgments, revealing that these methods are unable to fully capitalize on the judgments. To facilitate more effective utilization of judgments, we propose a novel framework, Contrastive Unlikelihood Training (CUT), that allows for fine-grained inappropriate content detection and correction based on judgments. 
 
-<img src="./assets/toy.png" alt="CUT" align=center />
+
+<p align="center">
+<img src="./assets/toy.png" alt="CUT" width="600"/>
+</p>
+
 
 Our offline alignment results show that, with merely 1317 off-the-shelf judgment data, CUT (LLaMA2-13b) can beat the 175B DaVinci003 and surpass the best baseline by 52.34 points on AlpacaEval. The online alignment results demonstrate that CUT can align LLMs (LLaMA2-chat-13b) in an iterative fashion using model-specific judgment data, with a steady performance improvement from 81.09 to 91.36 points on AlpacaEval. Our analysis further suggests that judgments exhibit greater potential than rewards for LLM alignment and warrant future research.
 
+<span id='dataset'/>
 
+#### 2. Dataset
 
-<p align="center">
-<img src="./assets/toy.png" alt="CUT" width="800"/>
-</p>
+To reproduce the offline experiments, please use the datasets from [Summarization Training set](https://openaipublic.blob.core.windows.net/critiques/dataset/critiques/train.jsonl.gz), [Summarization test set](https://openaipublic.blob.core.windows.net/critiques/dataset/critiques/test.jsonl.gz), and [Shepherd](https://github.com/facebookresearch/Shepherd).
+Please use the script `scripts/convert2alpaca.py` to convert the data into the Alpaca Format.
+
+To reproduce the online experiments, we provide the training instances for 5 online interations in `data/iter`. 
+
+We also re-annotate the 1000 * 4 instruction-response-judgment triplets from [UltraFeedback](https://github.com/OpenBMB/UltraFeedback). The new judgment data can be found in `data/UltraFeedback`.
 
 ## BibTeX
 
