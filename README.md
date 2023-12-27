@@ -117,15 +117,12 @@ Below is an instruction that describes a task, paired with an input that provide
 ### Instruction:
 {instruction}
 
-### Input:
-{input}
-
 ### Response:
 ```
 
 ##### 3. CLI
 
-[Fastchat](https://github.com/lm-sys/FastChat) provides a simple setup for those interested in trying our aligned model. After downloading the CUT model through HuggingFace, clone the Fastchat repository:
+[Fastchat](https://github.com/lm-sys/FastChat) provides a simple setup for those interested in trying our aligned model. After downloading the [CUT model](https://huggingface.co/xww033/cut-13b) through HuggingFace, clone the Fastchat repository:
 
 ```bash
 git clone https://github.com/lm-sys/FastChat.git
@@ -152,7 +149,12 @@ python -m fastchat.serve.cli --model-path xww033/cut-13b --conv-template alpaca
 
 ##### 1. Generation-based Evaluation
 
-We evaluate the model on [AlpacaEval](https://tatsu-lab.github.io/alpaca_eval). 
+We evaluate the model on [AlpacaEval](https://tatsu-lab.github.io/alpaca_eval). Please first install the evaluation tool:
+
+```bash 
+pip install alpaca-eval
+```
+
 The following script is employed to request the LLM to produce responses to the provided 805 instructions:
 
 ```bash
