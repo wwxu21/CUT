@@ -31,7 +31,6 @@ from transformers.models.llama.modeling_llama import LLAMA_INPUTS_DOCSTRING, Lla
 
 from peft.peft_model import PeftModel,  PeftConfig, _get_batch_size, PeftType
 import warnings
-
 logger = logging.get_logger(__name__)
 
 _CONFIG_FOR_DOC = "LlamaConfig"
@@ -118,9 +117,6 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
             output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
         )
         return_dict = return_dict if return_dict is not None else self.config.use_return_dict
-        # if input_ids_neg is not None and input_ids_neg[0][0] != 0: # [TODO] only applicable when micro_batch_size=1
-        #     input_ids = torch.cat([input_ids, input_ids_neg], dim=0)
-        #     attention_mask = torch.cat([attention_mask, attention_mask_neg], dim=0)
         # decoder outputs consists of (dec_features, layer_state, dec_hidden, dec_attn)
         outputs = self.model(
             input_ids=input_ids,
@@ -133,7 +129,6 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
             output_hidden_states=output_hidden_states,
             return_dict=return_dict,
         )
-
         hidden_states = outputs[0]
         if self.config.pretraining_tp > 1:
             lm_head_slices = self.lm_head.weight.split(self.vocab_size // self.config.pretraining_tp, dim=0)
@@ -143,11 +138,14 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
             logits = self.lm_head(hidden_states)
         logits = logits.float()
         probs = torch.softmax(logits,dim=2)
-
+        batch_size2, seq_length, hidden_size = probs.size()
+        batch_size = batch_size2 // 2
+        
         loss = None
+        unlike_mask = weight_unlike.ne(-1).view(-1).to(probs.device)
         if labels is not None:
             # Shift so that tokens < n predict n
-            shift_probs_pos = probs[0][..., :-1, :].contiguous()
+            shift_probs_pos = probs[:batch_size][..., :-1, :].contiguous()
             shift_labels = labels[..., 1:].contiguous()
             # Flatten the tokens
             loss_fct = NLLLoss()
@@ -157,10 +155,11 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
             # Enable model parallelism
             shift_labels = shift_labels.to(shift_logits.device)
             loss = loss_fct(shift_logits, shift_labels)
-            loss = loss * weight_like[0][0]
-            if probs.size(0) == 2:
-                loss_unlike = self.unlikelihood(probs, labels, labels_neg, weight_like, weight_unlike)
-                loss = (loss_unlike + loss) / 2 # [TODO] only applicable when micro_batch_size=1
+            
+            loss = loss
+            if unlike_mask.any():
+                loss_unlike = self.unlikelihood(probs, labels, labels_neg, weight_unlike, unlike_mask)
+                loss = (loss_unlike + loss) / 2 
 
         if not return_dict:
             output = (logits,) + outputs[1:]
@@ -173,25 +172,33 @@ class LlamaForCausalLM(LlamaPreTrainedModel):
             hidden_states=outputs.hidden_states,
             attentions=outputs.attentions,
         )
-    def unlikelihood(self, probs, labels, labels_neg, weight_like, weight_unlike):
+    def unlikelihood(self, probs, labels, labels_neg, weight_unlike, unlike_mask):
+        labels = labels.to(probs.device)
+        labels_neg = labels_neg.to(probs.device)
+        weight_unlike = weight_unlike.to(probs.device)
         shift_probs = probs[..., :-1, :].contiguous()
         shift_labels = labels[..., 1:].contiguous()
         shift_labels_neg = labels_neg[..., 1:].contiguous()
-        valid_indices = shift_labels != -100
-        valid_indices_neg = shift_labels_neg != -100
-        n, v = shift_probs[0].size()
-        label_clamped = torch.clamp(shift_labels, min=0, max=v-1)
-        label_clamped_neg = torch.clamp(shift_labels_neg, min=0, max=v-1)
-        probs_out = shift_probs[0][torch.arange(n), label_clamped[0]].view(1, -1)
-        probs_out_neg = shift_probs[1][torch.arange(n), label_clamped_neg[0]].view(1, -1)
+        valid_indices = shift_labels[unlike_mask] != -100
+        valid_indices_neg = shift_labels_neg[unlike_mask] != -100
+        # assert (valid_indices == valid_indices_neg).all()
+        batch_size2, seq_length, hidden_size = shift_probs.size()
+        batch_size = batch_size2 // 2
+        device = probs.device
+        label_clamped = torch.clamp(shift_labels, min=0, max=hidden_size - 1) 
+        label_clamped_neg = torch.clamp(shift_labels_neg, min=0, max=hidden_size - 1)
+        rows, cols = torch.meshgrid(torch.arange(batch_size, device=device), torch.arange(seq_length, device=device))
+        probs_out = shift_probs[:batch_size][rows, cols, label_clamped][unlike_mask]
+        probs_out_neg = shift_probs[batch_size:][rows, cols, label_clamped_neg][unlike_mask]
         valid_prob = probs_out[valid_indices]
         valid_prob_neg = probs_out_neg[valid_indices_neg]
-        unlike_indices = valid_prob / valid_prob_neg > self.threshold  # give some margins
+        scale = (valid_prob / valid_prob_neg).detach()
+        unlike_indices = scale > self.threshold  # give some margins
         valid_prob_neg[unlike_indices] = 1 - valid_prob_neg[unlike_indices]
         valid_prob_neg[valid_prob_neg == 0] += 1e-5 # avoid 0
         valid_lprob_neg = torch.log(valid_prob_neg)
-        valid_lprob_neg[unlike_indices] = weight_unlike * valid_lprob_neg[unlike_indices]
-        valid_lprob_neg[~unlike_indices] = weight_like * valid_lprob_neg[~unlike_indices]
+        valid_lprob_neg[unlike_indices] = weight_unlike[unlike_mask][0][0] * valid_lprob_neg[unlike_indices]
+        valid_lprob_neg[~unlike_indices] = valid_lprob_neg[~unlike_indices]
         loss_unlike = -torch.sum(valid_lprob_neg)/ valid_lprob_neg.size(0)
         return loss_unlike
 
@@ -294,9 +301,8 @@ class PeftModelForCausalLM(PeftModel):
     ):
         peft_config = self.active_peft_config
         kwargs.update({'weight_like':weight_like, 'weight_unlike':weight_unlike, "labels_neg": labels_neg})
-        if input_ids_neg[0][0] != 0: # [TODO] only applicable when micro_batch_size=1
-            input_ids = torch.cat([input_ids, input_ids_neg], dim=0)
-            attention_mask = torch.cat([attention_mask, attention_mask_neg], dim=0)
+        input_ids = torch.cat([input_ids, input_ids_neg], dim=0)
+        attention_mask = torch.cat([attention_mask, attention_mask_neg], dim=0)
         if not peft_config.is_prompt_learning:
             if self.base_model.config.model_type == "mpt":
                 if inputs_embeds is not None:

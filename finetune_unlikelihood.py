@@ -79,7 +79,7 @@ class MyDataCollator:
         if return_tensors is None:
             return_tensors = self.return_tensors
         labels = [feature["labels"] for feature in features] if "labels" in features[0].keys() else None
-        labels_neg = [feature["labels_neg"] for feature in features] if "labels_neg" in features[0].keys() else None #[TODO] only for micro_batch_size=1   
+        labels_neg = [feature["labels_neg"] for feature in features] if "labels_neg" in features[0].keys() else None
         # We have to pad the labels before calling `tokenizer.pad` as this method won't pad them and needs them of the
         # same length to return tensors.
         if labels is not None:
@@ -93,8 +93,9 @@ class MyDataCollator:
                     // self.pad_to_multiple_of
                     * self.pad_to_multiple_of
                 )
-
+            # self.tokenizer.padding_side = "left"
             padding_side = self.tokenizer.padding_side
+
             for feature in features:
                 feature['weight_like'] = [feature['weight_like']]
                 feature['weight_unlike'] = [feature['weight_unlike']]
@@ -472,7 +473,7 @@ def train(
                 'i_ans':x_i_ans,
                 'score':x_score,
             "weight_like":1,
-            "weight_unlike":1,
+            "weight_unlike":-1,
             }
             n_pos += 1
             pos_ids.append(len(train_processed))
