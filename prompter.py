@@ -32,17 +32,9 @@ class Prompter(object):
     ) -> str:
         # returns the full prompt from instruction and optional input
         # if a label (=response, =output) is provided, it's also appended.
-        input = data_point['input']
         instruction = data_point['instruction']
         label = data_point['output']
-        if input:
-            res = self.template["prompt_input"].format(
-                instruction=instruction, input=input
-            )
-        else:
-            res = self.template["prompt_no_input"].format(
-                instruction=instruction
-            )
+        res = instruction
         if output:
             res = f"{res}{label}"
         if self._verbose:
