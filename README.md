@@ -174,10 +174,10 @@ We evaluate the model's performance on ARC, HellaSwag, MMLU and TruthfulQA, util
 ## BibTeX
 
 ```
-@misc{xu2023reasons,
-      title={Reasons to Reject? Aligning Language Models with Judgments}, 
-      author={Weiwen Xu and Deng Cai and Zhisong Zhang and Wai Lam and Shuming Shi},
-      booktitle={arXiv preprint arxiv:2312.14591},
-      year={2023}
+@article{xu2023reasons,
+  title={Reasons to Reject? Aligning Language Models with Judgments},
+  author={Xu, Weiwen and Cai, Deng and Zhang, Zhisong and Lam, Wai and Shi, Shuming},
+  journal={arXiv preprint arXiv:2312.14591},
+  year={2023}
 }
 ```
