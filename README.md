@@ -65,7 +65,6 @@ pip install -r requirments.txt
 ##### 2. Train LLMs with CUT (first online iteration as the example)
 
 ```bash
-#[TODO] only applicable for micro_batch_size=1
 threshold=1.1
 weight_unlike=1
 name=cut-1plus-13b
