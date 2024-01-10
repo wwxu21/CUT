@@ -3,7 +3,6 @@ export PATH=/root/miniconda3/envs/NegInstruct/bin:$PATH
 threshold=1.1
 weight_unlike=1
 name=cut-1plus-13b
-#[TODO] only applicable for micro_batch_size=1
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 torchrun --nproc_per_node=8 --master_port=1233 finetune_unlikelihood.py \
     --base_model saved_models/llama2-13b-chat-hf \
     --data-path data/iter/train-alpaca-sample-iter1.json \
