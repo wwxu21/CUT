@@ -33,3 +33,4 @@ transformers==4.33.2
 pynvml
 protobuf==4.24.3
 safetensors==0.3.3
+wandb
