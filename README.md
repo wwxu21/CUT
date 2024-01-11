@@ -38,17 +38,17 @@ Our offline alignment results show that, with merely 1317 off-the-shelf judgment
 
 #### 2. Dataset
 
-##### 1. Offline Alignment
+##### 2.1. Offline Alignment
 
 To reproduce the offline experiments, please use the datasets from [Summarization Train](https://openaipublic.blob.core.windows.net/critiques/dataset/critiques/train.jsonl.gz), [Summarization Test](https://openaipublic.blob.core.windows.net/critiques/dataset/critiques/test.jsonl.gz), and [Shepherd](https://github.com/facebookresearch/Shepherd).
 Please use the script `scripts/convert2alpaca.py` to convert the data into the Alpaca Format.
 
 
-##### 2. Online Alignment
+##### 2.2. Online Alignment
 
 To reproduce the online experiments, we provide the training instances for 5 online interations in `data/iter`. 
 
-##### 3. Judgment v.s. Rewards
+##### 2.3. Judgment v.s. Rewards
 
 We sample 1000 * 4 instruction-response-judgment triplets from [UltraFeedback](https://github.com/OpenBMB/UltraFeedback) and re-annotate them with only negative judgments. The new judgment data can be found in `data/UltraFeedback`.
 
@@ -56,13 +56,15 @@ We sample 1000 * 4 instruction-response-judgment triplets from [UltraFeedback](h
 
 #### 3. Fine-tuning
 
-##### 1. Prepare the environment
+##### 3.1. Prepare the environment
 
 ```bash
 pip install -r requirments.txt
 ```
 
-##### 2. Train LLMs with CUT (first online iteration as the example)
+##### 3.2. Train LLMs with CUT 
+
+###### 3.2.1. Online Alignment (the first online iteration as an example)
 
 ```bash
 threshold=1.1
@@ -98,15 +100,51 @@ CUDA_VISIBLE_DEVICES=0 python merge.py \
     --output_dir ./saved_models/${name}
 ```
 
+###### 3.2.2. Offline alignment (Shepherd as an example)
+
+```bash
+threshold=1.2
+weight_unlike=0.5
+name=cut-1plus-13b
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 torchrun --nproc_per_node=8 --master_port=1233 finetune_unlikelihood.py \
+    --base_model saved_models/llama2-13b-chat-hf \
+    --data-path data/Shepherd/train-alpaca.json \
+    --output_dir ./saved_models/lora/${name} \
+    --batch_size 8 \
+    --micro_batch_size 1 \ 
+    --num_epochs 1 \
+    --learning_rate 0.0004 \
+    --cutoff_len 2048 \
+    --val_set_size 0 \
+    --lora_r 16 \
+    --lora_alpha 16 \
+    --lora_dropout 0.05 \
+    --lora_target_modules '[gate_proj, down_proj, up_proj]' \
+    --train_on_inputs False \
+    --add_eos_token False \
+    --group_by_length False \
+    --prompt_template_name alpaca \
+    --lr_scheduler 'cosine' \
+    --warmup_steps 100\
+    --weight_unlike ${weight_unlike}\
+    --threshold ${threshold}\
+    --downsample 0.25\
+
+CUDA_VISIBLE_DEVICES=0 python merge.py \
+    --base_model_name_or_path saved_models/llama2-13b-chat-hf \
+    --peft_model_path ./saved_models/lora/${name} \
+    --output_dir ./saved_models/${name}
+```
+
 <span id='inference'/>
 
 #### 4. Inference
 
-##### 1. Checkpoint Release
+##### 4.1. Checkpoint Release
 
 We present our [CUT model](https://huggingface.co/xww033/cut-13b), which has undergone four online iterations and successfully achieved a score of 91.36 points on [AlpacaEval](https://tatsu-lab.github.io/alpaca_eval).
 
-##### 2. Inference Template
+##### 4.2. Inference Template
 
 We follow the inference template used from [Stanford Alpaca](https://github.com/tatsu-lab/stanford_alpaca):
 
@@ -119,7 +157,7 @@ Below is an instruction that describes a task. Write a response that appropriate
 ### Response:
 ```
 
-##### 3. CLI
+##### 4.3. CLI
 
 [Fastchat](https://github.com/lm-sys/FastChat) provides a simple setup for those interested in trying our aligned model. After downloading the [CUT model](https://huggingface.co/xww033/cut-13b) through HuggingFace, clone the Fastchat repository:
 
@@ -146,7 +184,7 @@ python -m fastchat.serve.cli --model-path xww033/cut-13b --conv-template alpaca
 
 #### 5. Testing
 
-##### 1. Generation-based Evaluation
+##### 5.1. Generation-based Evaluation
 
 We evaluate the model on [AlpacaEval](https://tatsu-lab.github.io/alpaca_eval). Please first install the evaluation tool:
 
@@ -166,7 +204,7 @@ The generated responses would be saved in `<model checkpoint>/alpaca_eval.json`,
 alpaca_eval --model_outputs <model checkpoint>/alpaca_eval.json
 ```
 
-##### 2. Ranking-based Evaluation
+##### 5.2. Ranking-based Evaluation
 
 We evaluate the model's performance on ARC, HellaSwag, MMLU and TruthfulQA, utilizing the [LLM Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness).
 
