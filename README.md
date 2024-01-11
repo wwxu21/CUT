@@ -101,7 +101,7 @@ CUDA_VISIBLE_DEVICES=0 python merge.py \
 ```
 
 ###### 3.2.2. Offline alignment (Shepherd as an example)
-
+First, get the Shepherd dataset according to Sec. 2.1. Then use the following script:
 ```bash
 threshold=1.2
 weight_unlike=0.5
