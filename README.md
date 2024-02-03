@@ -59,7 +59,7 @@ We sample 1000 * 4 instruction-response-judgment triplets from [UltraFeedback](h
 ##### 3.1. Prepare the environment
 
 ```bash
-pip install -r requirments.txt
+pip install -r requirment.txt
 ```
 
 ##### 3.2. Train LLMs with CUT 
